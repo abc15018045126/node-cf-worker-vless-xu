@@ -48,19 +48,18 @@ async function handleApiRequest(request) {
   }
 
   const count = Math.min(Math.max(1, parseInt(countParam, 10) || 5), 50);
-  const cleanDomain = domain.replace(/^(https?:\/\/)/, '');
   const generatedLinks = [];
-
   for (let i = 0; i < count; i++) {
-      let address;
       if (i === 0) {
-          address = cleanDomain;
+          // First link uses domain directly
+          const link = generateVlessLink(uuid, domain, domain);
+          generatedLinks.push(link);
       } else {
           const randomCidr = cidrRanges[Math.floor(Math.random() * cidrRanges.length)];
-          address = getRandomIpFromCidr(randomCidr);
+          const randomIp = getRandomIpFromCidr(randomCidr);
+          const link = generateVlessLink(uuid, domain, randomIp);
+          generatedLinks.push(link);
       }
-      const link = generateVlessLink(uuid, domain, address);
-      generatedLinks.push(link);
   }
 
   const responseBody = generatedLinks.join('\n');
@@ -90,7 +89,9 @@ const html = `
   button { width: 100%; margin-top: 15px; padding: 12px; background: #007BFF; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
   button:hover { background: #0056b3; }
   .output-container { margin-top: 20px; position: relative; }
-  .copy-btn { position: absolute; top: -45px; right: 0; padding: 8px 12px; background: #007BFF; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+  .button-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .button-row button { flex: 1; }
+  .copy-btn { padding: 12px; background: #007BFF; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
   .copy-btn:hover { background: #0056b3; }
   pre { background: #f8f9fa; color: #000; padding: 15px; border-radius: 8px; white-space: pre-wrap; word-wrap: break-word; border: 1px solid #ddd; }
 </style>
@@ -107,10 +108,12 @@ const html = `
   <label for="count">Count</label>
   <input type="number" id="count" value="5" min="1" max="50">
 
-  <button id="generate-btn">Generate Links</button>
+  <div class="button-row">
+    <button id="generate-btn">Generate Links</button>
+    <button class="copy-btn" id="copy-btn">Copy</button>
+  </div>
 
   <div class="output-container">
-    <button class="copy-btn" id="copy-btn">Copy</button>
     <pre id="output"></pre>
   </div>
 </div>
