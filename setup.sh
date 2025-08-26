@@ -40,7 +40,7 @@ case "$PM" in
 esac
 
 ### --- Install Node.js ---
-NODE_VERSION="22.5.1"
+NODE_VERSION="22.18.0"
 NODE_DIR="$HOME/node"
 mkdir -p "$NODE_DIR"
 cd "$NODE_DIR"
