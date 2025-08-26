@@ -1,0 +1,23 @@
+sudo apt update
+sudo apt install nodejs 
+sudo apt install npm 
+curl -o package.json https://raw.githubusercontent.com/abc15018045126/node-cf-worker-deno-vless-xu/main/package.json 
+curl -o index.js https://raw.githubusercontent.com/abc15018045126/node-cf-worker-deno-vless-xu/main/index.js 
+# Add cloudflare gpg key
+sudo mkdir -p --mode=0755 /usr/share/keyrings
+curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+
+# Add this repo to your apt repositories
+echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
+
+# install cloudflared
+sudo apt-get update && sudo apt-get install cloudflared 
+
+sudo cloudflared service install 'token'(换一下这个)
+
+npm install 
+node index.js
+
+生成节点https://nless-generate.abc15018045126.dpdns.org/
+uuid:2ea73714-138e-4cc7-8cab-d7caf476d51b(可以在index.js改)
+（记得改index.js的端口和cf argo一样，默认443）
