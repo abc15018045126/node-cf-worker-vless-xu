@@ -2,15 +2,15 @@
 set -e
 
 ### --- Input Parameters ---
-PORT=${PORT:-3000}   # default port
+PORT=${PORT:-3000}
 ID=${ID:-"default-id"}
-AGN=${agn:-""}       # Cloudflare domain name
-AGK=${agk:-""}       # Cloudflare token/credentials
+AGN=${agn:-""}
+AGK=${agk:-""}
 
 ### --- Detect architecture ---
 ARCH=$(uname -m)
 case "$ARCH" in
-  x86_64) ARCH="x64" ;;      # Correct tarball naming
+  x86_64) ARCH="x64" ;;        # Correct label for Node.js tarball
   aarch64) ARCH="arm64" ;;
   *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
 esac
@@ -32,7 +32,7 @@ fi
 echo "[*] Architecture: $ARCH"
 echo "[*] Package manager: $PM"
 
-### --- Install curl and xz ---
+### --- Install prerequisites ---
 case "$PM" in
   apt-get) sudo $PM update && sudo $PM install -y curl xz-utils ;;
   dnf|yum) sudo $PM install -y curl xz ;;
@@ -55,21 +55,15 @@ fi
 export PATH="$NODE_DIR/bin:$PATH"
 echo 'export PATH="$HOME/node/bin:$PATH"' >> ~/.bashrc
 
-### --- Download project files ---
+### --- Set up project ---
 cd "$HOME"
 curl -fsSL -o package.json https://raw.githubusercontent.com/abc15018045126/node-cf-worker-deno-vless-xu/main/package.json
 curl -fsSL -o index.js https://raw.githubusercontent.com/abc15018045126/node-cf-worker-deno-vless-xu/main/index.js
-
-### --- Write env variables ---
 cat > .env <<EOF
 PORT=$PORT
 ID=$ID
 EOF
-
-### --- Install dependencies ---
 npm install
-
-### --- Run Node app in background ---
 nohup node index.js > app.log 2>&1 &
 echo "[*] Node app running on localhost:$PORT"
 
@@ -82,14 +76,14 @@ if [ ! -x /usr/local/bin/cloudflared ]; then
   rm cloudflared-linux-$ARCH.tgz
 fi
 
-### --- Run Argo tunnel ---
+### --- Run appropriate Argo Tunnel ---
 if [ -n "$AGN" ] && [ -n "$AGK" ]; then
-  echo "[*] Starting fixed Argo tunnel for $AGN..."
+  echo "[*] Using fixed Argo tunnel for $AGN..."
   mkdir -p ~/.cloudflared
   echo "$AGK" > ~/.cloudflared/$AGN.json
   cat > ~/.cloudflared/config.yml <<EOF
 tunnel: $AGN
-credentials-file: /root/.cloudflared/$AGN.json
+credentials-file: $HOME/.cloudflared/$AGN.json
 ingress:
   - hostname: $AGN
     service: http://localhost:$PORT
